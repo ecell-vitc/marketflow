@@ -17,6 +17,14 @@ TEST_USER_PASSWORD = "Testing@123"
 class CreateTestUsersForm(BaseModel):
     emails: List[str]
 
+class StockSeed(BaseModel):
+    name: str
+    category: str
+    value: float = 5000.0
+
+class CreateStocksForm(BaseModel):
+    stocks: List[StockSeed]
+
 @router.post('/admin/login')
 def admin_login(data: LoginForm):
     if data.username != os.environ['ADMIN_USERNAME'] or data.password != os.environ['ADMIN_PASSWORD']:
@@ -53,6 +61,23 @@ def create_test_users(
         created.append(email)
 
     return {"created": created, "skipped": skipped, "password": TEST_USER_PASSWORD}
+
+
+@router.post('/admin/stocks')
+def create_stocks(
+    data: CreateStocksForm,
+    _: None = Depends(middleware.check_admin),
+    session: db.sql.Session = Depends(db.get_session)
+):
+    created = []
+
+    for seed in data.stocks:
+        stock = stock_models.Stock(name=seed.name, category=seed.category)
+        stock.save(session)
+        stock_models.StockEntry(stock_id=stock.uid, value=seed.value).save(session)
+        created.append(seed.name)
+
+    return {"created": created}
 
 
 @router.get('/leaderboard')

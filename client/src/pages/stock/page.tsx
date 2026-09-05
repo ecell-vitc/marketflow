@@ -49,6 +49,14 @@ const Page = () => {
 
   if (!stocks || !entries) return null;
 
+  if (Object.keys(stocks).length === 0) {
+    return (
+      <div className="min-h-screen text-white flex items-center justify-center">
+        No stocks available yet. Check back once the market opens.
+      </div>
+    );
+  }
+
   return (
     <div className="min-h-screen text-white">
       <Stock

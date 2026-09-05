@@ -70,6 +70,9 @@ const AdminLogin = ({ onSuccess }: { onSuccess: () => void }) => {
 const AdminPanel = () => {
   const [username, setUsername] = useState("");
   const [message, setMessage] = useState("");
+  const [stockName, setStockName] = useState("");
+  const [stockCategory, setStockCategory] = useState("");
+  const [stockValue, setStockValue] = useState("5000");
   const [testEmails, setTestEmails] = useState("");
   const [testUsersResult, setTestUsersResult] = useState<{
     created: string[];
@@ -81,6 +84,27 @@ const AdminPanel = () => {
     const payload = await makeRequest(path, method, data, true, "admin_token");
     if (payload.detail) showMessage(payload.detail.message || "Request failed", true);
     else showMessage(payload.message || "Done");
+  };
+
+  const handleCreateStock = async () => {
+    if (!stockName.trim() || !stockCategory.trim()) return;
+
+    const payload = await makeRequest(
+      "admin/stocks",
+      "POST",
+      { stocks: [{ name: stockName, category: stockCategory, value: Number(stockValue) || 5000 }] },
+      true,
+      "admin_token"
+    );
+
+    if (payload.detail) {
+      showMessage(payload.detail.message || "Request failed", true);
+      return;
+    }
+
+    showMessage(`Created stock: ${payload.created.join(", ")}`);
+    setStockName("");
+    setStockCategory("");
   };
 
   const handleCreateTestUsers = async () => {
@@ -133,6 +157,37 @@ const AdminPanel = () => {
           </button>
           <button className={buttonClass} onClick={() => call("stocks/", "DELETE")}>
             Stop
+          </button>
+        </div>
+      </section>
+
+      <section className="space-y-3">
+        <h2 className="text-xl font-medium">Create stock</h2>
+        <p className="text-sm text-gray-300">
+          The stock provider only updates stocks that already exist — create at least one before
+          starting it, or the stocks page stays empty.
+        </p>
+        <div className="flex gap-3 flex-wrap">
+          <input
+            className={inputClass}
+            placeholder="name"
+            value={stockName}
+            onChange={(e) => setStockName(e.target.value)}
+          />
+          <input
+            className={inputClass}
+            placeholder="category"
+            value={stockCategory}
+            onChange={(e) => setStockCategory(e.target.value)}
+          />
+          <input
+            className={inputClass}
+            placeholder="starting value"
+            value={stockValue}
+            onChange={(e) => setStockValue(e.target.value)}
+          />
+          <button className={buttonClass} onClick={handleCreateStock}>
+            Create
           </button>
         </div>
       </section>
