@@ -1,3 +1,4 @@
+import os
 import data.db as db
 from user.models import *
 from stock.models import *
@@ -15,7 +16,7 @@ app = FastAPI()
 
 app.add_middleware(
     CORSMiddleware,
-    allow_origins=["*"],
+    allow_origins=os.environ['CLIENT_ORIGINS'].split(','),
     allow_credentials=True,
     allow_methods=["*"],
     allow_headers=["*"],

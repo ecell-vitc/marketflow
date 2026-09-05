@@ -1,5 +1,4 @@
-export const SERVER_HOST = "sms-server-wcc6.onrender.com"
-// export const SERVER_HOST = "localhost:8000"
+export const SERVER_HOST = import.meta.env.VITE_SERVER_HOST as string
 
 export const makeRequest = async(
     path: string,
