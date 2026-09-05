@@ -1,7 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import type { Stock as StockType, StockEntry } from "../../types";
 import { parse_entry } from "./logic";
-import { makeRequest, SERVER_HOST } from "../../lib/utils";
+import { makeRequest, SERVER_HOST, SERVER_WS_PROTOCOL } from "../../lib/utils";
 import Stock from "./stock";
 
 const Page = () => {
@@ -20,7 +20,7 @@ const Page = () => {
         setCurr(Object.keys(data.info)[0]);
       });
 
-    const socket = new WebSocket(`wss://${SERVER_HOST}/stocks/`);
+    const socket = new WebSocket(`${SERVER_WS_PROTOCOL}://${SERVER_HOST}/stocks/`);
 
     socket.onmessage = (ev) => {
       const update: Record<string, StockEntry> = JSON.parse(ev.data);

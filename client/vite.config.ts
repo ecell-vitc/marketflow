@@ -6,6 +6,9 @@ import tailwindcss from '@tailwindcss/vite'
 export default defineConfig({
   plugins: [react(), tailwindcss()],
   server: {
-    allowedHosts: ['7a078d860d1d.ngrok-free.app']
+    allowedHosts: ['7a078d860d1d.ngrok-free.app'],
+    watch: {
+      usePolling: true
+    }
   }
 })
