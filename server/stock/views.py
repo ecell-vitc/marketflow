@@ -51,9 +51,12 @@ def get_stocks(session: sql.Session = Depends(get_session)):
     if PROVIDER.started.is_set():
         cache = Cache()
         for stock_id in res.keys():
-            entry = models.StockEntry.from_json(uuid.UUID(stock_id), cache.get(stock_id))
+            try:
+                entry = models.StockEntry.from_json(uuid.UUID(stock_id), cache.get(stock_id))
+            except Exception:
+                continue
             res[stock_id]['entries'].append(entry.to_dict())
-        
+
 
     return res
 

@@ -113,21 +113,24 @@ class StockProvider(threading.Thread):
         cache = Cache()
         session = next(get_session())
         stocks = list(session.exec(sql.select(Stock)).fetchall())
-        
-        for entry in session.exec(
-            sql.select(StockEntry)
-            .order_by(StockEntry.timestamp.desc())  # type: ignore
-            .limit(len(stocks))
-        ).all():
+
+        for stock in stocks:
+            entry = session.exec(
+                sql.select(StockEntry)
+                .where(StockEntry.stock_id == stock.uid)
+                .order_by(StockEntry.timestamp.desc())  # type: ignore
+                .limit(1)
+            ).first()
+            if entry is None: continue
+
             cache.set(
-                entry.stock_id.hex, 
+                stock.uid.hex,
                 str(StockEntry(
-                    entry.stock_id,
+                    stock.uid,
                     value=entry.close
                 ))
             )
-            self.__events[entry.stock_id.hex] = []
-            pass
+            self.__events[stock.uid.hex] = []
 
         delta_time = 0
         while self.started.is_set():
