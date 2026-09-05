@@ -8,6 +8,7 @@ import Stock from './pages/stock/page'
 import HomePage from './pages/auth/page'
 import TransactionPage from './pages/transactions/page'
 import Leaderboard from './pages/leaderboard/page'
+import AdminPage from './pages/admin/page'
 
 
 const ProtectedRoute = ({ elem }: { elem: React.ReactNode }) => {
@@ -53,6 +54,7 @@ const App = () => {
 						{/* <Route path="/portfolio" element={<Portfolio />} /> */}
 						<Route path="/transactions" element={<ProtectedRoute elem={<TransactionPage />} />} />
 						<Route path="/leaderboard" element={<Leaderboard />} />
+						<Route path="/admin" element={<AdminPage />} />
 						<Route path="/" element={<HomePage />} />
 					</Routes>
 				</main>

@@ -4,9 +4,10 @@ export const makeRequest = async(
     path: string,
     method: RequestInit['method'],
     data?: Record<string, unknown>,
-    includeAuth: boolean = false
+    includeAuth: boolean = false,
+    tokenKey: string = 'token'
 ) => {
-    const token = localStorage.getItem('token')
+    const token = localStorage.getItem(tokenKey)
     if (includeAuth && !token) return { "detail": { "message": "You are not logged in" } };
 
     const res = await fetch(`https://${SERVER_HOST}/${path}`, {

@@ -1,12 +1,59 @@
-from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends
+import os, jwt
+from typing import List
+from pydantic import BaseModel
+from fastapi import APIRouter, WebSocket, WebSocketDisconnect, Depends, HTTPException, status
 from data import db
 from data.cache import Cache
 import middleware
 
 import stock.models as stock_models
 import user.models as user_models
+from user.forms import LoginForm
 
 router = APIRouter()
+
+TEST_USER_PASSWORD = "Testing@123"
+
+class CreateTestUsersForm(BaseModel):
+    emails: List[str]
+
+@router.post('/admin/login')
+def admin_login(data: LoginForm):
+    if data.username != os.environ['ADMIN_USERNAME'] or data.password != os.environ['ADMIN_PASSWORD']:
+        raise HTTPException(status.HTTP_401_UNAUTHORIZED, detail={"message": "Incorrect username or password"})
+
+    token = jwt.encode(
+        {"username": data.username, "password": data.password},
+        os.environ['SECRET'],
+        algorithm='HS256'
+    )
+    return {"token": token}
+
+
+@router.post('/admin/test-users')
+def create_test_users(
+    data: CreateTestUsersForm,
+    _: None = Depends(middleware.check_admin),
+    session: db.sql.Session = Depends(db.get_session)
+):
+    created, skipped = [], []
+
+    for email in data.emails:
+        existing = session.exec(
+            db.sql.select(user_models.User).where(user_models.User.username == email)
+        ).one_or_none()
+
+        if existing is not None:
+            skipped.append(email)
+            continue
+
+        user = user_models.User(username=email, password=TEST_USER_PASSWORD)
+        user.verified = True
+        user.save(session)
+        created.append(email)
+
+    return {"created": created, "skipped": skipped, "password": TEST_USER_PASSWORD}
+
 
 @router.get('/leaderboard')
 def get_leaderboard(session: db.sql.Session = Depends(db.get_session)):
