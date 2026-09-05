@@ -7,11 +7,25 @@ from data.cache import Cache
 def sumGP(a: float, n: int) -> float:
     return a * (1 - a**n) / (1 - a)
 
+def get_current_price(stock: Stock, session: sql.Session) -> float:
+    try:
+        return StockEntry.from_json(stock.uid, Cache().get(stock.uid.hex)).close
+    except Exception:
+        entry = session.exec(
+            sql.select(StockEntry)
+            .where(StockEntry.stock_id == stock.uid)
+            .order_by(StockEntry.timestamp.desc())  # type: ignore
+            .limit(1)
+        ).first()
+        if entry is None:
+            raise ValueError(f"No price data available for stock {stock.uid}")
+        return entry.close
+
 def buy_stock(
     user: User, stock: Stock, units: int,
     session: sql.Session, holding: Holding | None
 ):
-    per_unit = StockEntry.from_json(stock.uid, Cache().get(stock.uid.hex)).close
+    per_unit = get_current_price(stock, session)
     txn = Transaction(
         user=user.uid,
         stock=stock.uid,
@@ -62,7 +76,7 @@ def sell_stock(
     user: User, stock: Stock, units: int,
     session: sql.Session, holding: Holding | None
 ):
-    per_unit = StockEntry.from_json(stock.uid, Cache().get(stock.uid.hex)).close
+    per_unit = get_current_price(stock, session)
     txn = Transaction(
         user=user.uid,
         stock=stock.uid,

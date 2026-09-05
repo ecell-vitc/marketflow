@@ -95,8 +95,11 @@ def transact(
         raise HTTPException(status.HTTP_400_BAD_REQUEST, detail={"message": "Units cannot be zero"})
     
     res: dict[str, bool | str] = {}
-    if data.units < 0: res = logic.sell_stock(user, stock, abs(data.units), session, holding)
-    else: res = logic.buy_stock(user, stock, data.units, session, holding)
+    try:
+        if data.units < 0: res = logic.sell_stock(user, stock, abs(data.units), session, holding)
+        else: res = logic.buy_stock(user, stock, data.units, session, holding)
+    except ValueError as e:
+        raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED, detail={"message": str(e)})
 
     if not res['valid']:
         raise HTTPException(status.HTTP_428_PRECONDITION_REQUIRED, detail=res)
