@@ -35,13 +35,13 @@ class StockEntry(BaseTimestampModel, table=True):
             stock_id=stock_id,
             open=float(data['open']), close=float(data['close']),
             low=float(data['low']), high=float(data['high']),
-            timestamp=datetime.fromtimestamp(float(data['time'])/1000, tz=pytz.timezone('Asia/Kolkata'))
+            timestamp=datetime.fromtimestamp(float(data['time']), tz=pytz.timezone('Asia/Kolkata'))
         )
-    
+
     def to_dict(self): return {
         "open": self.open, "close": self.close,
         "low": self.low, "high": self.high,
-        "time": int(self.timestamp.timestamp() * 1e3)
+        "time": int(self.timestamp.timestamp())
     }
     
     def __str__(self): return json.dumps(self.to_dict())

@@ -91,9 +91,18 @@ def get_leaderboard(session: db.sql.Session = Depends(db.get_session)):
         .join(user_models.Holding)
         .where(user_models.User.verified == True)
     ).all():
-        cache_entry = Cache().get(holding.stock.hex)
-        res[user.username] += holding.quantity * \
-            (stock_models.StockEntry.from_json(holding.stock, cache_entry).close if cache_entry else 0)
+        try:
+            price = stock_models.StockEntry.from_json(holding.stock, Cache().get(holding.stock.hex)).close
+        except Exception:
+            entry = session.exec(
+                db.sql.select(stock_models.StockEntry)
+                .where(stock_models.StockEntry.stock_id == holding.stock)
+                .order_by(stock_models.StockEntry.timestamp.desc())  # type: ignore
+                .limit(1)
+            ).first()
+            price = entry.close if entry else 0
+
+        res[user.username] += holding.quantity * price
 
     return res
 
